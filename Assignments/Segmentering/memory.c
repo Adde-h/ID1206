@@ -24,8 +24,8 @@ typedef struct array
    segment pointer. 
 */
 
-array sentinel = {0, &memory[MEMORY], NULL};
 array dummy = {1, &memory[-1], &sentinel};
+array sentinel = {0, &memory[MEMORY], NULL};
 
 array *allocated = &dummy;
 
