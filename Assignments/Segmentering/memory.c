@@ -18,7 +18,7 @@ typedef struct array
    pointing to one position before the real memory. The last segment is
    a sentinel that always has the size zero. 
    Having these two element makes it easier to work with the list. We
-   vill never add something before the dummy and never after the
+   will never add something before the dummy and never after the
    sentinel nor will we ever remove the first or last element in the list. 
    The elements in the list will be ordered based on the value of the
    segment pointer. 

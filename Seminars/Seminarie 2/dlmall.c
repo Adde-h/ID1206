@@ -44,7 +44,7 @@ struct head *split(struct head *block, int size)
 	/* size of full block - size of requested block - header */
 	int rsize = block->size - size - HEAD;
 
-	/* resize block to requested size */
+	/* Resize block to requested size */
 	block->size = rsize;
 
 	/* Split is the unused free block */
@@ -52,7 +52,7 @@ struct head *split(struct head *block, int size)
 	splt->bsize = block->size;
 	splt->bfree = block->free;
 
-	/* resize new block to remaining size */
+	/* Resize new block to remaining size */
 	splt->size = size;
 	splt->free = TRUE;
 
@@ -251,4 +251,68 @@ void dfree(void *memory)
 	}
 
 	return;
+}
+
+void sanity()
+{
+	struct head *checkBlock = flist;
+	struct head *prev = checkBlock->prev;
+
+	while (checkBlock != NULL)
+	{
+		if (checkBlock->free == FALSE)
+		{
+			printf("Block is not free\n");
+			return;
+		}
+
+		if (checkBlock->size == 0)
+		{
+			printf("Block size is 0\n");
+			return;
+		}
+
+		if (checkBlock->size % ALIGN != 0)
+		{
+			printf("Block size is not aligned\n");
+			return;
+		}
+
+		if (checkBlock->size < MIN(checkBlock->size))
+		{
+			printf("Block size is smaller than minimum\n");
+			return;
+		}
+
+		if (checkBlock->next != NULL && checkBlock->next->prev != checkBlock)
+		{
+			printf("Block next is not correct\n");
+			return;
+		}
+
+		if (checkBlock->prev != prev)
+		{
+			printf("Block prev is not correct\n");
+			return;
+		}
+
+		prev = checkBlock;
+		checkBlock = checkBlock->next;
+	}
+	printf("Sanity check passed\n");
+}
+
+void traverse()
+{
+	struct head *checkBlock = arena;
+	while (checkBlock->size != 0)
+	{
+		printf("Block: %p\n", checkBlock);
+		printf("Size: %d\n", checkBlock->size);
+		printf("Free: %d\n", checkBlock->free);
+		printf("bfree: %d\n", checkBlock->bfree);
+		printf("bsize: %d\n", checkBlock->bsize);
+		printf("\n");
+		checkBlock = after(checkBlock);
+	}
 }
