@@ -1,0 +1,2 @@
+int dalloc();
+int dfree();
