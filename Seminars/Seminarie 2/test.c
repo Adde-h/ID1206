@@ -6,8 +6,7 @@
 int main(int argc, char const *argv[])
 {
 
-  struct head *first = new();
-	insert(first);
+	initialize();
 
 	/* Traverse all memory blocks from arena until end */
 	printf("\n** FIRST TRAVERSE ** \n");

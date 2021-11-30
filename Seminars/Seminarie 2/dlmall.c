@@ -84,7 +84,7 @@ struct head *new ()
 	/* make room for head and dummy */
 	uint size = ARENA - 2 * HEAD;
 	new->bfree = FALSE;
-	new->bsize = 1; //dummy
+	new->bsize = 1; // dummy
 	new->free = TRUE;
 	new->size = size;
 
@@ -105,17 +105,17 @@ struct head *flist;
 void detach(struct head *block)
 {
 	/**
-   * If there is a block after selected
-   * Goes to "main blocks" next block and sets that blocks prev to point to the block before "main block"
-   */
+	 * If there is a block after selected
+	 * Goes to "main blocks" next block and sets that blocks prev to point to the block before "main block"
+	 */
 	if (block->next != NULL)
 	{
 		block->next->prev = block->prev;
 	}
 	/*
-  * If there is a block before selected
-  * Goes to "main blocks" prev block and sets that blocks next to point to the block after "main block" 
-  */
+	 * If there is a block before selected
+	 * Goes to "main blocks" prev block and sets that blocks next to point to the block after "main block"
+	 */
 	if (block->prev != NULL)
 	{
 		block->prev->next = block->next;
@@ -163,9 +163,9 @@ int adjust(int requested)
 }
 
 /**
-* Tries to find a block of the given size
-* and if block is bigger check if it is possible to split.
-*/
+ * Tries to find a block of the given size
+ * and if block is bigger check if it is possible to split.
+ */
 struct head *find(int size)
 {
 	struct head *checkBlock = flist;
@@ -175,9 +175,9 @@ struct head *find(int size)
 		{
 			detach(checkBlock);
 			/**
-       * If the block is bigger than the requested size and
-       * has enough space to split, split it.
-       */
+			 * If the block is bigger than the requested size and
+			 * has enough space to split, split it.
+			 */
 			if (checkBlock->size > LIMIT(size))
 			{
 				/* Splits the block and gets pointer to free block */
@@ -190,9 +190,9 @@ struct head *find(int size)
 				insert(splt);
 
 				/**
-         * Get pointer to block after "main block" and
-         * set its bfree to FALSE because we now use "main block" 
-         */
+				 * Get pointer to block after "main block" and
+				 * set its bfree to FALSE because we now use "main block"
+				 */
 				struct head *aft = after(block);
 				aft->bfree = FALSE;
 
@@ -238,6 +238,39 @@ void *dalloc(size_t request)
 		return HIDE(taken);
 	}
 }
+struct head *merge(struct head *block)
+{
+	struct head *aft = after(block);
+	if (block->bfree)
+	{
+		/* unlink the block before */
+		struct head *bef = before(block);
+		detach(bef);
+
+		/* calculate and set the total size of the merged blocks */
+		bef->size = bef->size + block->size + HEAD;
+
+		/* update the block after the merged blocks */
+		aft->bsize = bef->size;
+		aft->bfree = bef->free;
+
+		/* continue with the merged block */
+		block = bef;
+	}
+	if (aft->free)
+	{
+		/* unlink the block */
+		detach(aft);
+		/* calculate and set the total size of merged blocks */
+		block->size = block->size + aft->size + HEAD;
+
+		/* update the block after the merged block */
+		aft = after(block);
+		aft->bsize = block->size;
+		aft->bfree = block->free;
+	}
+	return block;
+}
 
 void dfree(void *memory)
 {
@@ -245,6 +278,7 @@ void dfree(void *memory)
 	{
 		struct head *block = MAGIC(memory);
 		struct head *aft = after(block);
+		block = merge(block);
 		block->free = TRUE;
 		aft->bfree = block->free;
 		insert(block);
@@ -314,5 +348,35 @@ void traverse()
 		printf("bsize: %d\n", checkBlock->bsize);
 		printf("\n");
 		checkBlock = after(checkBlock);
+	}
+}
+
+void initialize()
+{
+	struct head *first = new ();
+	insert(first);
+}
+
+int freelistlength()
+{
+	int i = 0;
+	struct head *temp = flist;
+	while (temp != NULL)
+	{
+		i++;
+		temp = temp->next;
+	}
+	return i;
+}
+
+void sizes(int *buffer, int max)
+{
+	struct head *next = flist;
+	int i = 0;
+	while ((next != NULL) & (i < max))
+	{
+		buffer[i] = next->size;
+		i++;
+		next = next->next;
 	}
 }
